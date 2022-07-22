@@ -1,0 +1,465 @@
+---
+title: K22 CEM API Reference
+
+language_tabs: # must be one of https://git.io/vQNgJ
+  - python
+  - shell
+
+toc_footers:
+  - <a href='https://www.scraawl.com'>Take me to K22 CEM!</a>
+
+includes:
+  - errors
+
+search: true
+
+code_clipboard: true
+
+meta:
+  - name: description
+    content: Documentation for the K22 APIs
+---
+
+# Introduction
+
+K22 CEM APIs allows you to access a broad range of text, image, video, and audio analytics. It integrates with your data and allow you to build customized workflows. The following APIs are available:
+
+- To detect dominant language of a text [Language Detection]
+- To extract named entities such as locations, organizations, and persons [Named Entity Extraction]
+- To translate text between languages [Machine Translation]
+- To convert longitude and latitude into street addresses [Geocoding]
+- To convert street addresses to longitude and latitude [Reverse Geocoding]
+- To extract text from a given image [Optical Character Recognition]
+- To detect not-safe-for-work (NSFW) content [NSFW Detection]
+
+We have language bindings in Shell, and Python! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
+
+
+# Authentication
+> To authorize, use this code:
+
+```python
+import json
+import requests
+
+headers = {"Authorization": "<%= config[:password] %>"}
+url     = "<%= config[:endpoint] %>/Authorize"
+
+resp = requests.request("GET", url, headers=headers)
+if resp:
+  print(json.dumps(resp.json(), indent=2))
+else:
+  print(f"An error has occurred. Status code = {resp.status_code}")
+```
+
+```shell
+# With shell, you can just pass the correct header with each request
+curl --request GET '<%= config[:endpoint] %>/Authorize' \
+  --header 'Authorization: '
+```
+
+> Make sure to replace `<%= config[:password] %>` with your API key.
+
+Many of the CEM APIs do not require authorization. However, if you need a CEM API key to call end point, contact our team at [K22 CEM Help](https://www.scraawl.com/contact/index.html).
+
+When the the API key is included, in all API requests to the server in a header that looks like the following:
+
+`Authorization: <%= config[:password] %>`
+
+<aside class="notice">
+You must replace <code><%= config[:password] %></code> with your personal API key.
+</aside>
+
+# Language Detection
+
+## POST: DetectDominantLanguage
+This `synchronous` end point detects the dominant language(s) of an input text.
+
+### HTTP Request
+
+> To detect the language of a text, use this code:
+
+```python
+import json
+import requests
+
+headers = {"Content-Type": "application/json"}
+payload = {"Text": "This is a sentence in English."}
+url     = "<%= config[:endpoint] %>/DetectDominantLanguage"
+
+resp = requests.request("POST", url, headers=headers, data=payload)
+if resp:
+  print(json.dumps(resp.json(), indent=2))
+else:
+  print(f"An error has occurred. Status code = {resp.status_code}")
+```
+
+```shell
+curl --request POST "<%= config[:endpoint] %>/DetectDominantLanguage" \
+  --header 'Content-Type: application/json' \
+  --data-raw '{"Text": "This is a sentence in English."}'
+```
+
+> The above command returns JSON structured like this:
+
+```json
+{
+  "Languages": [
+    {
+      "LanguageCode": "en",
+      "Score": 0.99876
+    }
+  ]
+}
+```
+
+`POST <%= config[:endpoint] %>/DetectDominantLanguage`
+
+### URL Parameters
+
+Parameter |  Description | Type | Required |
+--------- |  ----------- | ---- | -------- |
+Text      | Input text   | String | Yes |
+
+
+### Output Parameters
+
+Parameter |  Description | Type | Required |
+--------- |  ----------- | ---- | -------- | 
+Languages.LanguageCode| ISO 639-1 code of the language, e.g., "en" for English | String | Yes | 
+Languages.Score | Confidence associated with the detected language(s) (between 0.0 and 1.0) | Float | No |
+
+# Machine Translation 
+
+> To translate a text from a language to another language, use this code:
+
+```python
+import json
+import requests
+
+headers = {"Content-Type": "application/json"}
+payload = {"Text": "我喜欢环游世界。", "SourceLanguageCode": "ch", "TargetLanguageCode": "en"}
+url     = "<%= config[:endpoint] %>/TranslateText"
+
+resp = requests.request("POST", url, headers=headers, data=payload)
+if resp:
+  print(json.dumps(resp.json(), indent=2))
+else:
+  print(f"An error has occurred. Status code = {resp.status_code}")
+```
+
+```shell
+curl --request POST "<%= config[:endpoint] %>/TranslateText" \
+  --header 'Content-Type: application/json' \
+  --data-raw '{"Text": "我喜欢环游世界。", "SourceLanguageCode": "ch", "TargetLanguageCode": "en"}'
+```
+
+> The above command returns JSON structured like this:
+
+```json
+{
+  "TranslatedText": "I like to travel around the world.", 
+  "SourceLanguageCode": "ch", 
+  "TargetLanguageCode": "en"
+}
+```
+
+### HTTP Request
+
+`POST <%= config[:endpoint] %>/TranslateText`
+
+### URL Parameters
+
+Parameter |  Description | Type | Required |
+--------- |  ----------- | ---- | -------- |
+Text | Input text | String | Yes |
+SourceLanguageCode  | The language to be translated from - in ISO 639-1 code | String | No (default = "en") |
+TargetLanguageCode  | The language to be translated to - in ISO 639-1 code | String | No (default = "en") | 
+
+### Output Parameters
+
+Parameter |  Description | Type | Required |
+--------- |  ----------- | ---- | -------- |
+TranslatedText | Translated text | String | Yes |
+SourceLanguageCode  | The language to be translated from - in ISO 639-1 code | String | No |
+TargetLanguageCode  | The language to be translated to - in ISO 639-1 code | String | No |
+
+# Named Entity Recognition
+This end point performs Named Entity Recognition (NER) to extract named entities including but not limited to persons, organizations, location, money, date.
+
+> To perform NER on a text, use this code:
+
+```python
+import json
+import requests
+
+headers = {"Content-Type": "application/json"}
+payload = {"Text": "Bill Gates was born and raised in Seattle and co-founded Microsoft in 1975."}
+url     = "<%= config[:endpoint] %>/DetectEntities"
+
+resp = requests.request("POST", url, headers=headers, data=payload)
+if resp:
+  print(json.dumps(resp.json(), indent=2))
+else:
+  print(f"An error has occurred. Status code = {resp.status_code}")
+```
+
+```shell
+curl --request POST "<%= config[:endpoint] %>/DetectEntities" \
+  --header 'Content-Type: application/json' \
+  --data-raw '"Text": "Bill Gates was born and raised in Seattle and co-founded Microsoft in 1975."}'
+```
+
+> The above command returns JSON structured like this:
+
+```json
+{
+  "Entities": [
+    {
+      "Text": "Bill Gates",
+      "Score": 0.97,
+      "Type": "PERSON",
+      "BeginOffset": 0,
+      "EndOffset": 10
+    },
+    {
+      "Text": "Seattle",
+      "Score": 0.96,
+      "Type": "LOCATION",
+      "BeginOffset": 35,
+      "EndOffset": 41
+    },
+    {
+      "Text": "Microsoft",
+      "Score": 0.93,
+      "Type": "ORGANIZATION",
+      "BeginOffset": 57,
+      "EndOffset": 65
+    },
+    {
+      "Text": "1975",
+      "Score": 0.98,
+      "Type": "DATE",
+      "BeginOffset": 70,
+      "EndOffset": 73
+    }
+  ]
+}
+```
+
+### HTTP Request
+
+`POST <%= config[:endpoint] %>/DetectEntities`
+
+### URL Parameters
+
+Parameter | Description | Type | Required |
+--------- | ----------- | ---- | -------- |
+Text      | Input text | String | Yes |
+
+### Output Parameters
+
+Parameter |  Description | Type | Required |
+--------- |  ----------- | ---- | -------- | 
+Entities.Text | Entity name | String | Yes |
+Entities.Score | Confidence of the inference (between 0.0 and 1.0) | Float | No |
+Entities.Type | Entity type | String | No |
+Entities.BeginOffset | A character offset in the input text that shows where the entity begins (the first character is at position 0) | Integer | No |
+Entities.EndOffset | A character offset in the input text that shows where the entity ends | Integer | No |
+
+Supported entity types include `PERSON`, `ORGANIZATION`, `LOCATION`, `DATE`.
+
+# Geocoding
+
+
+# Reverse Geocoding
+
+
+# Optical Character Recognition
+
+> To run OCR Chinese on an image in an S3 bucket, use this code:
+
+```python
+import json
+import requests
+
+headers = {"Content-Type": "application/json"}
+payload = {"Image": {"S3Object": {"Bucket": "cem-data", "Name": "data/chinese-ocr-example.jpeg"}}}
+url     = "<%= config[:endpoint] %>/OpticalCharacterRecognition"
+
+resp = requests.request("POST", url, headers=headers, data=payload)
+if resp:
+  print(json.dumps(resp.json(), indent=2))
+else:
+  print(f"An error has occurred. Status code = {resp.status_code}")
+```
+
+```shell
+curl --request POST "<%= config[:endpoint] %>/OpticalCharacterRecognition" \
+  --header 'Content-Type: application/json' \
+  --data-raw '{"Image": {"S3Object": {"Bucket": "cem-data", "Name": "data/chinese-ocr-example.jpeg"}}}'
+```
+
+> The above command returns JSON structured like this:
+
+```json
+{
+  "statusCode": 200,
+  "body": [
+    {
+      "BoundingBox": {
+        "Width": 0.075,
+        "Top": 0.2359882005899705,
+        "Left": 0.134375,
+        "Height": 0.1415929203539823
+      },
+      "Text": "西",
+      "Confidence": 0.6629598563364745
+    },
+    {
+      "BoundingBox": {
+        "Width": 0.4375,
+        "Top": 0.22123893805309736,
+        "Left": 0.2953125,
+        "Height": 0.26548672566371684
+      },
+      "Text": "愚园路",
+      "Confidence": 0.9619015323198089
+    },
+    {
+      "BoundingBox": {
+        "Width": 0.075,
+        "Top": 0.23893805309734514,
+        "Left": 0.8078125,
+        "Height": 0.12389380530973451
+      },
+      "Text": "东",
+      "Confidence": 0.9935730580773452
+    }
+  ]
+}
+```
+
+This end point uses Optical Character Recognition (OCR) to extract Chinese text from images. 
+
+### HTTP Request
+
+`POST <%= config[:endpoint] %>/OpticalCharacterRecognition`
+
+### URL Parameters
+
+Parameter |  Description | Type | Required  |
+--------- |  ----------- | ---- | --------- | 
+Image.S3Object.Bucket | S3 bucket name of where the image is | String | Yes | 
+Image.S3Object.Name   | Key name of the image (includes prefix) | String | Yes |
+
+### Example URL Parameters
+
+For an image that is stored at `s3://cem-data/data/chinese-ocr-example.jpeg`, the URL parameters have the following values.
+
+Parameter | Value
+--------- | ------- 
+Image.S3Object.Bucket | cem-data
+Image.S3Object.Name   | data/chinese-ocr-example.jpeg
+
+### Output Parameters
+
+The output is an HTTP status code `statusCode` and the analytic output in the `body` key. 
+
+`statusCode` is either `200` for success or one of the error codes at the end of this documentation.
+
+`body` is an array of inferred text with the parameters below.
+
+Parameter |  Description | Type | Required |
+--------- |  ----------- | ---- | ---------| 
+BoundingBox.Width | Width of the bounding box of the inferred text as a ratio of the image width (between 0.0 and 1.0) | Float | Yes |  
+BoundingBox.Height | Height of the bounding box of the inferred text as a ratio of the image height (between 0.0 and 1.0) | Float | Yes | 
+BoundingBox.Top | Top-most pixel value of the bounding box of the inferred text as a ratio of the image height (between 0.0 and 1.0) | Float | Yes | 
+BoundingBox.Left | Left-most pixel value of the bounding box of the inferred text as a ratio of the image height (between 0.0 and 1.0) | Float | Yes | 
+Text | Inferred text | String | Yes | 
+Confidence | Confidence associated with the inferred text (between 0.0 and 1.0) | Float | No | 
+
+
+# NSFW Detection
+
+The Not-Safe-For-Work (NSFW) end point detects indecent and unseemly images.
+
+> To run NSFW on an image in an S3 bucket, use this code:
+
+```python
+import json
+import requests
+
+headers = {"Content-Type": "application/json"}
+payload = {"Image": {"S3Object": {"Bucket": "cem-data", "Name": "data/potentially-indecent-image.jpeg"}}}
+url     = "<%= config[:endpoint] %>/DetectNSFW"
+
+resp = requests.request("POST", url, headers=headers, data=payload)
+if resp:
+  print(json.dumps(resp.json(), indent=2))
+else:
+  print(f"An error has occurred. Status code = {resp.status_code}")
+```
+
+```shell
+curl --request POST "<%= config[:endpoint] %>/DetectNSFW" \
+  --header 'Content-Type: application/json' \
+  --data-raw '{"Image": {"S3Object": {"Bucket": "cem-data", "Name": "data/potentially-indecent-image.jpeg"}}}'
+```
+
+> The above command returns JSON structured like this:
+
+```json
+{
+  "NSFWClassifications": [
+    {
+      "Class": "drawings",
+      "Score": 1.3489832053892314E-4
+    },
+    {
+      "Class": "hentai",
+      "Score": 1.1264223576290533E-4
+    },
+    {
+      "Class": "neutral",
+      "Score": 0.9976571798324585
+    },
+    {
+      "Class": "porn",
+      "Score": 0.0019689372275024652
+    },
+    {
+      "Class": "sexy",
+      "Score": 1.2641055218409747E-4
+    }
+  ]
+}
+```
+
+### HTTP Request
+
+`POST <%= config[:endpoint] %>/DetectNSFW`
+
+### URL Parameters
+
+Parameter |  Description | Type | Required |
+--------- |  ----------- | ---- | ---------| 
+Image.S3Object.Bucket | S3 bucket name of where the image is | String | Yes | 
+Image.S3Object.Name   | Key name of the image (includes prefix) | String | Yes |
+
+### Example URL Parameters
+
+For an image that is stored at `s3://cem-data/data/potentially-indecent-image.jpeg`, the URL parameters have the following values.
+
+Parameter | Value
+--------- | ------- 
+Image.S3Object.Bucket | scraawl-data
+Image.S3Object.Name   | data/potentially-indecent-image.jpeg
+
+### Output Parameters
+The output is an `NSFWClassifications` object.
+
+Parameter |  Description | Type | Required |
+--------- |  ----------- | ---- | ---------| 
+NSFWClassifications.Class | One of the NSFW classes: drawings, hentai, neutral, porn, or sexy  | String | Yes | 
+NSFWClassifications.Score | The confidence score (probability) that the image belongs to the the class (between 0.0 and 1.0) | Float | Yes | 

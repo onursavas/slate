@@ -61,3 +61,11 @@ set :port, 4567
 helpers do
   require './lib/toc_data.rb'
 end
+
+
+# Global Variables
+set :endpoint, 'https://api.k22.ai/api/v1'
+config[:endpoint]
+
+set :password, 'P@ssw0rd'
+config[:password]
